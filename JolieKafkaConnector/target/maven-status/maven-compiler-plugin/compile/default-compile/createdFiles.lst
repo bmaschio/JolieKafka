@@ -1,0 +1,9 @@
+joliekafkaconnector\CustomSerializer.class
+joliekafkaconnector\IKafkaConstants.class
+joliekafkaconnector\ConsumerCreator.class
+joliekafkaconnector\CustomObject.class
+joliekafkaconnector\CustomPartitioner.class
+joliekafkaconnector\ProducerCreator.class
+joliekafkaconnector\TestKafka.class
+joliekafkaconnector\CustomObjectDeserializer.class
+joliekafkaconnector\JolieKafkaConnector.class
