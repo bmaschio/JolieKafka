@@ -6,30 +6,73 @@
 package joliekafkaconnector;
 
 /**
- *
  * @author maschio
  */
 
 
-
-
 import java.util.Properties;
+
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.*;
 
 
-public class JolieProducerCreator
-{
+public class JolieProducerCreator {
 
-    public static Producer<Long, ConcreteValue> createProducer(Value v) {
+    public static Producer<Object, Object> createProducer(Value v, JolieKafkaTypeEnum keyType, JolieKafkaTypeEnum valueType) throws Exception {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, IKafkaConstants.KAFKA_BROKERS);
-        props.put(ProducerConfig.CLIENT_ID_CONFIG, IKafkaConstants.CLIENT_ID);
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ValueJolieSerializer.class.getName());
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, v.getFirstChild("broker").strValue());
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, v.getFirstChild("clientId").strValue());
+
+
+        switch (keyType) {
+            case STRING:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+                break;
+            case INTEGER:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
+                break;
+            case LONG:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
+                break;
+            case VALUE:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ValueJolieSerializer.class.getName());
+                break;
+            case BYTES:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+                break;
+            case DOUBLE:
+                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, DoubleDeserializer.class.getName());
+                break;
+            default:
+                break;
+        }
+
+        switch (valueType) {
+            case STRING:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+                break;
+            case INTEGER:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
+                break;
+            case LONG:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
+                break;
+            case VALUE:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ValueJolieSerializer.class.getName());
+                break;
+            case BYTES:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+                break;
+            case DOUBLE:
+                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DoubleDeserializer.class.getName());
+                break;
+            default:
+                throw (new Exception());
+        }
+
         return new KafkaProducer<>(props);
     }
 

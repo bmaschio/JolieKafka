@@ -14,18 +14,18 @@ import org.apache.kafka.common.serialization.Serializer;
  *
  * @author maschio
  */
-public class ValueJolieSerializer implements Serializer<ConcreteValue> {
+public class ValueJolieSerializer implements Serializer<Value> {
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
     }
 	
     @Override
-    public byte[] serialize(String topic, ConcreteValue data) {
+    public byte[] serialize(String topic, Value data) {
         byte[] retVal = null;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             StringBuilder sb = new StringBuilder();
-            JsUtils.valueToJsonString(data.getValue(), false,null , sb );
+            JsUtils.valueToJsonString(data, false,null , sb );
             retVal = objectMapper.writeValueAsBytes(sb.toString());
 			
         } catch (Exception exception) {

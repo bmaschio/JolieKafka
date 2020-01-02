@@ -22,7 +22,7 @@ import org.apache.kafka.common.serialization.Deserializer;
  *
  * @author maschio
  */
-public class ValueJolieDeserializer implements Deserializer<ConcreteValue>
+public class ValueJolieDeserializer implements Deserializer<Value>
 {
 	@Override
 	public void configure( Map<String, ?> configs, boolean isKey )
@@ -30,18 +30,15 @@ public class ValueJolieDeserializer implements Deserializer<ConcreteValue>
 	}
 
 	@Override
-	public ConcreteValue deserialize( String topic, byte[] data )
+	public Value deserialize( String topic, byte[] data )
 	{
 		ObjectMapper mapper = new ObjectMapper();
-		ConcreteValue object = null;
+		Value object = null;
 
 		try {
 			String s = mapper.readValue(data,String.class);
 			Reader rd  = new StringReader(s);
-			Value v=Value.create();
-			JsUtils.parseJsonIntoValue(rd,v,false);
-			object = new ConcreteValue(v);
-
+			JsUtils.parseJsonIntoValue(rd,object,false);
 		} catch( Exception exception ) {
 			System.out.println( "Error in deserializing bytes " + exception );
 		}
