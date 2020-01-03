@@ -1,9 +1,8 @@
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\CustomPartitioner.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\IKafkaConstants.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\ConsumerCreator.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\CustomObject.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\CustomSerializer.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieKafkaConnector.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\ProducerCreator.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\CustomObjectDeserializer.java
-C:\Progetti\Github\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\TestKafka.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieKafkaTypeEnum.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieProducerCreator.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieKafkaConnector.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieConsumerCreator.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\JolieKafkaService.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\IKafkaConstants.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\ValueJolieDeserializer.java
+C:\GitHub\JolieKafka\JolieKafkaConnector\src\main\java\joliekafkaconnector\ValueJolieSerializer.java
