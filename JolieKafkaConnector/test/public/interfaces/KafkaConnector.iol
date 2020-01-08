@@ -20,13 +20,14 @@ type SetConsumerRequest{
     .topic:string
     .keyType:string
     .valueType:string
+    .duration?:long
 }
 
 type ConsumerInRequest{
-    .payload:void{
+    .payload*:void{
         .key:undefined
         .value:undefined
-    }
+    }    
 }
 
 

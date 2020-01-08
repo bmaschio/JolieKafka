@@ -16,38 +16,51 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.consumer.Consumer;
+import scala.compat.java8.JProcedure0;
+import scala.compat.java8.JProcedure1;
 
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
 
 @AndJarDeps({"jolie-js.jar", "kafka_2.13-2.4.0.jar", "junit-4.12.jar", "slf4j-api-1.7.30.jar", "jackson-databind-2.10.0.jar", "jackson-core-2.10.0.jar", "jackson-annotations-2.10.0.jar", "json-simple-1.1.1.jar"})
 public class JolieKafkaService extends JavaService {
 
+    private Producer<Object, Object> producer = null;
+    private String producerTopic = "";
+
     private class ConsumerThread extends Thread {
         private boolean keepRun = true;
+        private long durationInSecond = 1;
         private Consumer<Object, Object> consumer;
+
 
         public void kill() {
             keepRun = false;
             consumer.close();
+
             this.interrupt();
         }
 
         @Override
         public void run() {
             while (keepRun) {
-                ConsumerRecords<Object, Object> consumerRecords = consumer.poll(1);
+                ConsumerRecords<Object, Object> consumerRecords = consumer.poll(Duration.ofMillis(durationInSecond));
+                Value recordValue = Value.create();
                 consumerRecords.forEach(record -> {
-                    Value recordValue = Value.create();
-                    recordValue.getFirstChild("payload").getFirstChild("key").setValue(record.key());
+                    Value singleValue = Value.create();
+                    singleValue.getFirstChild("key").setValue(record.key());
                     if (record.value() instanceof Value) {
-
-                        recordValue.getFirstChild("payload").getFirstChild("value").deepCopy((Value) record.value());
+                        singleValue.getFirstChild("value").deepCopy((Value) record.value());
                     } else {
-                        recordValue.getFirstChild("payload").getFirstChild("value").setValue(record.value());
+                        singleValue.getFirstChild("value").setValue(record.value());
                     }
-                    sendMessage(CommMessage.createRequest("consumerIn", "/", recordValue));
+                    recordValue.getChildren("payload").add(singleValue);
+
                 });
+                if (recordValue.hasChildren("payload")) {
+                    sendMessage(CommMessage.createRequest("consumerIn", "/", recordValue));
+                }
 
             }
         }
@@ -76,7 +89,13 @@ public class JolieKafkaService extends JavaService {
                 valueType = org.jolie.kafkaconnector.JolieKafkaTypeEnum.VALUE;
             }
             consumer = org.jolie.kafkaconnector.JolieConsumerCreator.createConsumer(v, keyType, valueType);
+            if (v.hasChildren("duration")){
+                durationInSecond = v.getFirstChild("duration").longValue();
+            }
+
         }
+
+
 
     }
 
@@ -118,11 +137,24 @@ public class JolieKafkaService extends JavaService {
             } else {
                 value = null;
             }
-            Producer<Object, Object> producer = null;
-            try {
-                producer = org.jolie.kafkaconnector.JolieProducerCreator.createProducer(v, keyType, valueType);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if ((producer==null) && (!producerTopic.equals(v.getFirstChild("topic").strValue()))){
+                try {
+                    producerTopic = v.getFirstChild("topic").strValue();
+                    producer = org.jolie.kafkaconnector.JolieProducerCreator.createProducer(v, keyType, valueType);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }else {
+                if (!v.getFirstChild("topic").strValue().equals(producerTopic)){
+                    producer.flush();
+                    producer.close();
+                    try {
+                        producerTopic = v.getFirstChild("topic").strValue();
+                        producer = org.jolie.kafkaconnector.JolieProducerCreator.createProducer(v, keyType, valueType);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
             ProducerRecord<Object, Object> record = new ProducerRecord<>(v.getFirstChild("topic").strValue(), key, value);
 
@@ -130,6 +162,7 @@ public class JolieKafkaService extends JavaService {
                 RecordMetadata metadata = producer.send(record).get();
                 returnValue.getFirstChild("partition").setValue(metadata.partition());
                 returnValue.getFirstChild("offset").setValue(metadata.offset());
+
             } catch (ExecutionException e) {
                 System.out.println("Error in sending record");
                 System.out.println(e);
@@ -153,7 +186,9 @@ public class JolieKafkaService extends JavaService {
     protected void finalize()
             throws Throwable {
         try {
+            producer.flush();
             consumerThread.kill();
+            producer.close();
         } finally {
             super.finalize();
         }

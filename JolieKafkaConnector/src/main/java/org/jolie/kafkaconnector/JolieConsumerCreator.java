@@ -75,7 +75,8 @@ public class JolieConsumerCreator {
         }
 
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,"true");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, org.jolie.kafkaconnector.IKafkaConstants.OFFSET_RESET_EARLIER);
+        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,100000);
+       // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, org.jolie.kafkaconnector.IKafkaConstants.OFFSET_RESET_EARLIER);
         Consumer<Object, Object> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Collections.singletonList( v.getFirstChild("topic").strValue()));
         return consumer;
