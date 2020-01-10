@@ -11,7 +11,7 @@ main{
         .clientId="client1";
         .topic="ProvaJolie1";
         .payload.key = token;
-        .payload.value.stock:"FCA";
+        .payload.value.stock="FCA";
         .payload.value.price = 20.0
     }
     sendMessageToTopic@Kafka(req)()

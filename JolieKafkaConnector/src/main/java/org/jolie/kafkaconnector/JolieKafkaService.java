@@ -19,11 +19,13 @@ import org.apache.kafka.clients.consumer.Consumer;
 import scala.compat.java8.JProcedure0;
 import scala.compat.java8.JProcedure1;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 
-
-@AndJarDeps({"jolie-js.jar", "kafka_2.13-2.4.0.jar", "junit-4.12.jar", "slf4j-api-1.7.30.jar", "jackson-databind-2.10.0.jar", "jackson-core-2.10.0.jar", "jackson-annotations-2.10.0.jar", "json-simple-1.1.1.jar"})
+@AndJarDeps({ "jolie-js.jar", "kafka_2.13-2.4.0.jar", "junit-4.12.jar", "slf4j-api-1.7.30.jar",
+        "jackson-databind-2.10.0.jar", "jackson-core-2.10.0.jar", "jackson-annotations-2.10.0.jar",
+        "json-simple-1.1.1.jar" })
 public class JolieKafkaService extends JavaService {
 
     private Producer<Object, Object> producer = null;
@@ -33,7 +35,6 @@ public class JolieKafkaService extends JavaService {
         private boolean keepRun = true;
         private long durationInSecond = 1;
         private Consumer<Object, Object> consumer;
-
 
         public void kill() {
             keepRun = false;
@@ -59,7 +60,13 @@ public class JolieKafkaService extends JavaService {
 
                 });
                 if (recordValue.hasChildren("payload")) {
-                    sendMessage(CommMessage.createRequest("consumerIn", "/", recordValue));
+                    CommMessage request = CommMessage.createRequest("consumerIn", "/", recordValue);
+                    try {
+                        CommMessage response = sendMessage(request).recvResponseFor(request).get();
+                    } catch (InterruptedException | ExecutionException | IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
 
             }
