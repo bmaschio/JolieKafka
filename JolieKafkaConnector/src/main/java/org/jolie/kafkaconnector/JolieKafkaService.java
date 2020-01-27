@@ -6,18 +6,17 @@
 package org.jolie.kafkaconnector;
 
 
+import jolie.Interpreter;
+import jolie.lang.Constants;
 import jolie.net.CommMessage;
-import jolie.runtime.AndJarDeps;
-import jolie.runtime.JavaService;
-import jolie.runtime.Value;
+import jolie.runtime.*;
 import jolie.runtime.embedding.RequestResponse;
+import jolie.runtime.typing.OperationTypeDescription;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.consumer.Consumer;
-import scala.compat.java8.JProcedure0;
-import scala.compat.java8.JProcedure1;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -35,6 +34,9 @@ public class JolieKafkaService extends JavaService {
         private boolean keepRun = true;
         private long durationInSecond = 1;
         private Consumer<Object, Object> consumer;
+        private String operation;
+        private Boolean autoCommit;
+
 
         public void kill() {
             keepRun = false;
@@ -95,7 +97,22 @@ public class JolieKafkaService extends JavaService {
             } else if (v.getFirstChild("valueType").strValue().equals("value")) {
                 valueType = org.jolie.kafkaconnector.JolieKafkaTypeEnum.VALUE;
             }
+
+            autoCommit = v.getFirstChild("autocommit").boolValue();
+            operation =  v.getFirstChild("operation").strValue();
+            OperationTypeDescription operationType = Interpreter.getInstance().commCore().localListener().inputPort().getOperationTypeDescription( operation, Constants.ROOT_RESOURCE_PATH );
+            if ((operationType instanceof RequestResponseOperation) & (autoCommit == true)){
+                throw new FaultException( "RequestResponseConfigError", new Exception("Not allowed autocommit set to true with RequestResponse callback operation" ) );
+            }
+
+            if ((operationType instanceof OneWayOperation) & (autoCommit == false)){
+                throw new FaultException( "OneWayConfigError", new Exception("Not allowed autocommit set to false with Oneway callback operation" ));
+            }
+
+
             consumer = org.jolie.kafkaconnector.JolieConsumerCreator.createConsumer(v, keyType, valueType);
+
+
             if (v.hasChildren("duration")){
                 durationInSecond = v.getFirstChild("duration").longValue();
             }
@@ -182,9 +199,13 @@ public class JolieKafkaService extends JavaService {
     }
 
     @RequestResponse
-    public void setConsumer(Value v) throws Exception {
+    public void setConsumer(Value v) throws FaultException {
         consumerThread = new ConsumerThread();
-        consumerThread.setValue(v);
+        try {
+            consumerThread.setValue(v);
+        } catch (Exception e) {
+            throw new FaultException( "ConsumerCreationError", e );
+        }
         consumerThread.start();
 
     }
