@@ -6,6 +6,7 @@
 package org.jolie.kafkaconnector;
 
 
+import com.sun.crypto.provider.PBEWithMD5AndDESCipher;
 import jolie.Interpreter;
 import jolie.lang.Constants;
 import jolie.net.CommMessage;
@@ -13,13 +14,16 @@ import jolie.runtime.*;
 import jolie.runtime.embedding.RequestResponse;
 import jolie.runtime.typing.OperationTypeDescription;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.common.TopicPartition;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 @AndJarDeps({ "jolie-js.jar", "kafka_2.13-2.4.0.jar", "junit-4.12.jar", "slf4j-api-1.7.30.jar",
@@ -29,6 +33,7 @@ public class JolieKafkaService extends JavaService {
 
     private Producer<Object, Object> producer = null;
     private String producerTopic = "";
+    private HashMap<String,ConsumerThread> counsumerHashMap = new HashMap();
 
     private class ConsumerThread extends Thread {
         private boolean keepRun = true;
@@ -36,6 +41,7 @@ public class JolieKafkaService extends JavaService {
         private Consumer<Object, Object> consumer;
         private String operation;
         private Boolean autoCommit;
+        private String topic;
 
 
         public void kill() {
@@ -62,11 +68,22 @@ public class JolieKafkaService extends JavaService {
 
                 });
                 if (recordValue.hasChildren("payload")) {
-                    CommMessage request = CommMessage.createRequest("consumerIn", "/", recordValue);
+                    CommMessage request = CommMessage.createRequest(operation, "/", recordValue);
                     try {
                         CommMessage response = sendMessage(request).recvResponseFor(request).get();
-                    } catch (InterruptedException | ExecutionException | IOException e) {
+
+                        if (autoCommit == false){
+                            HashMap <TopicPartition, OffsetAndMetadata>  commitMap= new HashMap<>();
+                            response.value().getFirstChild("offset").longValue();
+                            commitMap.put( new TopicPartition(topic,0) , new OffsetAndMetadata( response.value().getFirstChild("offset").longValue()));
+                            consumer.commitSync(commitMap);
+                        }
+                    }
+                     catch (InterruptedException | IOException e) {
                         // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                    catch (ExecutionException e){
                         e.printStackTrace();
                     }
                 }
@@ -100,6 +117,7 @@ public class JolieKafkaService extends JavaService {
 
             autoCommit = v.getFirstChild("autocommit").boolValue();
             operation =  v.getFirstChild("operation").strValue();
+            topic = v.getFirstChild("topic").strValue();
             OperationTypeDescription operationType = Interpreter.getInstance().commCore().localListener().inputPort().getOperationTypeDescription( operation, Constants.ROOT_RESOURCE_PATH );
             if ((operationType instanceof RequestResponseOperation) & (autoCommit == true)){
                 throw new FaultException( "RequestResponseConfigError", new Exception("Not allowed autocommit set to true with RequestResponse callback operation" ) );
@@ -203,6 +221,7 @@ public class JolieKafkaService extends JavaService {
         consumerThread = new ConsumerThread();
         try {
             consumerThread.setValue(v);
+            counsumerHashMap.put(v.getFirstChild("operation").strValue(), consumerThread);
         } catch (Exception e) {
             throw new FaultException( "ConsumerCreationError", e );
         }
