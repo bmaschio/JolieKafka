@@ -73,10 +73,10 @@ public class JolieKafkaService extends JavaService {
                         CommMessage response = sendMessage(request).recvResponseFor(request).get();
 
                         if (autoCommit == false){
-                            HashMap <TopicPartition, OffsetAndMetadata>  commitMap= new HashMap<>();
-                            response.value().getFirstChild("offset").longValue();
-                            commitMap.put( new TopicPartition(topic,0) , new OffsetAndMetadata( response.value().getFirstChild("offset").longValue()));
-                            consumer.commitSync(commitMap);
+                                HashMap<TopicPartition, OffsetAndMetadata> commitMap = new HashMap<>();
+                                response.value().getFirstChild("offset").longValue();
+                                commitMap.put(new TopicPartition(topic, 0), new OffsetAndMetadata(response.value().getFirstChild("offset").longValue()));
+                                consumer.commitSync(commitMap);
                         }
                     }
                      catch (InterruptedException | IOException e) {

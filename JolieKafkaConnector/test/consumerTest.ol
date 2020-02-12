@@ -1,6 +1,10 @@
 include "/public/interfaces/KafkaConnector.iol"
 include "console.iol"
 
+interface MyInterface{
+OneWay:
+onewayConsumer(undefined)
+}
 inputPort KafkaInput {
   location:"local"  
   Interfaces: KafkaConnectorData
