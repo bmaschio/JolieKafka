@@ -26,8 +26,6 @@ public class JolieProducerCreator {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, v.getFirstChild("broker").strValue());
         props.put(ProducerConfig.CLIENT_ID_CONFIG, v.getFirstChild("clientId").strValue());
 
-
-
         switch (keyType) {
             case STRING:
                 props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());

@@ -5,8 +5,7 @@
  */
 package org.jolie.kafkaconnector;
 
-
-
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -14,6 +13,7 @@ import jolie.runtime.Value;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.*;
 
 
@@ -24,10 +24,8 @@ public class JolieConsumerCreator {
 
     public static Consumer<Object, Object> createConsumer(Value v, org.jolie.kafkaconnector.JolieKafkaTypeEnum keyType , org.jolie.kafkaconnector.JolieKafkaTypeEnum valueType) throws Exception {
         Properties props = new Properties();
-
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, v.getFirstChild("broker").strValue());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, v.getFirstChild("groupId").strValue());
-
         switch (keyType) {
             case STRING:
                 props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -75,10 +73,9 @@ public class JolieConsumerCreator {
         }
 
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,v.getFirstChild("autocommit").boolValue());
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,100000);
-       // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, org.jolie.kafkaconnector.IKafkaConstants.OFFSET_RESET_EARLIER);
         Consumer<Object, Object> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Collections.singletonList( v.getFirstChild("topic").strValue()));
+        TopicPartition partition = new TopicPartition(v.getFirstChild("topic").strValue(), 0);
+        consumer.assign(Arrays.asList(partition));
         return consumer;
     }
 }

@@ -1,9 +1,17 @@
 include "/public/interfaces/KafkaConnector.iol"
 include "console.iol"
+include "time.iol"
+
+interface ConsumerInterface{
+  RequestResponse:
+  consumerInReqRes(undefined)(undefined) throws ErrorProcess (undefined)
+  OneWay:
+  consumerInOneWay(undefined)
+}
 
 inputPort KafkaInput {
   location:"local"
-  Interfaces: KafkaConnectorData
+  Interfaces: ConsumerInterface
 }
 
 init {
@@ -14,15 +22,28 @@ init {
         .topic="ProvaJolie1";
         .keyType = "string";
         .valueType = "value";
-        .duration = 10L
+        .duration = 60000L
+        .autocommit=true
+        .operation = "consumerInOneWay"
     }
     setConsumer@Kafka(req)
 }
 
 execution { concurrent }
 
+init{
+  global.offset = 5
+}
+
 main{
-[consumerIn(request)]{
-       println@Console( #request.payload )(  )
+[consumerInReqRes(request)(response){
+       sleep@Time( 1000 )(  )
+       global.offset += 10
+       response.offset =  global.offset;
+      // throw(Error, response )
+       response.offset = 10L
+}]
+[consumerInOneWay(request)]{
+  nullProcess
 }
 }
