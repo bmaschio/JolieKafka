@@ -1,3 +1,11 @@
-/JolieKafkaConnector/nbproject/private/
-/JolieKafkaConnector/build/
-/JolieKafkaConnector/target/
+*.json
+.idea/*
+target/*
+.settings/*
+.project
+*.iml
+.classpath
+.factorypath
+*.jks
+*.p12
+*.pem
