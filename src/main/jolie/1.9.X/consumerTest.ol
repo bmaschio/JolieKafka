@@ -1,13 +1,17 @@
 include "/public/interfaces/KafkaConnector.iol"
 include "console.iol"
+include "time.iol"
 
-interface MyInterface{
-OneWay:
-onewayConsumer(undefined)
-}
+interface ServiceInterface {
+    RequestResponse:
+      topicTwoListener(ConsumerInRequest)(void)
+    OneWay:
+      topicOneListener(ConsumerInRequest)
+  }
+
 inputPort KafkaInput {
-  location:"local"  
-  Interfaces: KafkaConnectorData
+  location:"local"
+  Interfaces: ServiceInterface
 }
 
 init {
@@ -15,10 +19,24 @@ init {
     with(req){
         .broker="localhost:9092";
         .groupId="group1";
-        .topic="ProvaJolie1";
+        .topic="topicOne";
         .keyType = "string";
         .valueType = "value";
-        .duration = 10L
+        .duration = 10L;
+        .operation = "topicOneListener";
+        .autocommit = true
+    }
+    setConsumer@Kafka(req)
+
+        with(req){
+        .broker="localhost:9092";
+        .groupId="group1";
+        .topic="topicTwo";
+        .keyType = "string";
+        .valueType = "value";
+        .duration = 10L;
+        .operation = "topicTwoListener";
+        .autocommit = false
     }
     setConsumer@Kafka(req)
 }   
@@ -26,7 +44,11 @@ init {
 execution { concurrent }
 
 main{
-[consumerIn(request)]{
-       println@Console( #request.payload )(  )
-}
+[topicOneListener(request)]{
+       println@Console( "topicOneListener" )(  )
+       }
+[topicTwoListener(request)(){
+       println@Console( "topicTwoListener" )(  )
+       }]
+
 }

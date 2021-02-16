@@ -41,17 +41,19 @@ interface KafkaConnectorControl{
     setConsumer(SetConsumerRequest)
 }
 
-interface KafkaConnectorData{
-    OneWay:
-    consumerIn(ConsumerInRequest)
-}
 
 
-outputPort Kafka {
-  Interfaces: KafkaConnectorControl
-}
 
-embedded {
-  Java:
-    "org.jolie.kafkaconnector.JolieKafkaService" in Kafka
+
+
+service Kafka {
+  
+inputPort ip {
+        location:"local"
+        interfaces: KafkaConnectorControl
+    }
+
+foreign java {
+  class: "org.jolie.kafkaconnector.JolieKafkaService" 
+  }
 }

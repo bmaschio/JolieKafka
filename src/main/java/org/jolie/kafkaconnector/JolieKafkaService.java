@@ -181,9 +181,9 @@ public class JolieKafkaService extends JavaService {
                     e.printStackTrace();
                 }
             } else {
-                if (!v.getFirstChild("topic").strValue().equals(producerTopic)) {
+                if (!producerTopic.equals(v.getFirstChild("topic").strValue().equals(producerTopic) )) {
                     producer.flush();
-                    producer.close();
+                    //producer.close();
                     try {
                         producerTopic = v.getFirstChild("topic").strValue();
                         producer = org.jolie.kafkaconnector.JolieProducerCreator.createProducer(v, keyType, valueType);

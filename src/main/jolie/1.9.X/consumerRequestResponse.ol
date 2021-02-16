@@ -2,12 +2,12 @@ include "/public/interfaces/KafkaConnector.iol"
 include "console.iol"
 include "time.iol"
 
-interface ConsumerInterface{
-  RequestResponse:
-  consumerInReqRes(undefined)(undefined) throws ErrorProcess (undefined)
-  OneWay:
-  consumerInOneWay(undefined)
-}
+interface ServiceInterface {
+    RequestResponse:
+      topicTwoListener(ConsumerInRequest)(void)
+    OneWay:
+      topicOneListener(ConsumerInRequest)
+  }
 
 inputPort KafkaInput {
   location:"local"
@@ -15,35 +15,40 @@ inputPort KafkaInput {
 }
 
 init {
-
+  
     with(req){
         .broker="localhost:9092";
         .groupId="group1";
-        .topic="ProvaJolie1";
+        .topic="topicOne";
         .keyType = "string";
         .valueType = "value";
-        .duration = 60000L
-        .autocommit=true
-        .operation = "consumerInOneWay"
+        .duration = 10L;
+        .operation = "topicOneListener";
+        .autocommit = true
     }
     setConsumer@Kafka(req)
-}
+
+        with(req){
+        .broker="localhost:9092";
+        .groupId="group1";
+        .topic="topicTwo";
+        .keyType = "string";
+        .valueType = "value";
+        .duration = 10L;
+        .operation = "topicTwoListener";
+        .autocommit = false
+    }
+    setConsumer@Kafka(req)
+}   
 
 execution { concurrent }
 
-init{
-  global.offset = 5
-}
-
 main{
-[consumerInReqRes(request)(response){
-       sleep@Time( 1000 )(  )
-       global.offset += 10
-       response.offset =  global.offset;
-      // throw(Error, response )
-       response.offset = 10L
-}]
-[consumerInOneWay(request)]{
-  nullProcess
-}
+[topicOneListener(request)]{
+       println@Console( "topicOneListener" )(  )
+       }
+[topicTwoListener(request)(){
+       println@Console( "topicTwoListener" )(  )
+       }]
+
 }
